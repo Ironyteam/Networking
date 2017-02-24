@@ -5,10 +5,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using namespace Constants
 
 public class NetLogic : MonoBehaviour 
 {
-    const string ADDGAME         = "1";
+ /*   const string ADDGAME         = "1";
     const string ADDPLAYER       = "2";
     const string SENDGAMELIST    = "3";
     const string CANCELGAME      = "4";
@@ -19,12 +20,14 @@ public class NetLogic : MonoBehaviour
 	const string BUILDSETTLEMENT = "9";
 	const string UPGRADETOCITY   = "10";
 	const string BUILDROAD       = "11";
-	const string ATTACKCITY      = "12";
-	const string ENDTURN         = "13";
-	const string STARTTURN       = "14";
-	const string SENDCHAT        = "15";
-	const string ERROR           = "16";
-    const string GAMENAME        = "My Game";
+	const string BUILDARMY       = "12";
+	const string ROBBERMOVE      = "13";
+	const string ATTACKCITY      = "14";
+	const string ENDTURN         = "15";
+	const string STARTTURN       = "16";
+	const string SENDCHAT        = "17";
+	const string ERROR           = "18";
+*/
 
 	int myReliableChannelId;
 	int socketId;
@@ -113,10 +116,134 @@ public class NetLogic : MonoBehaviour
 			BinaryFormatter formatter = new BinaryFormatter ();
 			string message = formatter.Deserialize (stream) as string;
 			messageLog.text = messageLog.text + "\n" + message;
+			processNetworkMessage(message);
 			break;
 		case NetworkEventType.DisconnectEvent:
 			messageLog.text = messageLog.text + "\n" + "Remote client event disconnected";
 			break;
 		}
 	}
+
+	void processNetworkMessage(string networkMessage);
+	{
+		string[] gameInfo = networkMessage.Split (',');
+		switch (gameInfo[0])
+		{
+			case Constants.addGame:
+			case Constants.addPlayer:
+			case Constants.requestGameList:
+			case Constants.cancelGame:
+			case Constants.gameStarted:
+			case Constants.gameEnded:
+			case Constants.characterSelect:
+			case Constants.characterResult:
+			case Constants.diceRoll:
+			case Constants.buildSettlement:
+			case Constants.upgradeToCity:
+			case Constants.buildRoad:
+			case Constants.buildArmy:
+			case Constants.attackCity:
+			case Constants.moveRobber:
+			case Constants.endTurn:
+			case Constants.startTurn:
+			case Constants.sendChat:
+			case Constants.error:
+		}
+	}
+
+	void addGame(string gameInfo[])
+	{
+
+	}
+
+	void addPlayer(string gameInfo[])
+	{
+
+	}
+
+	void requestGameList(string gameInfo[])
+	{
+
+	}
+
+	void cancelGame(string gameInfo[])
+	{
+
+	}
+	
+	void gameStarted(string gameInfo[])
+	{
+
+	}
+
+	void gameEnded(string gameInfo[])
+	{
+
+	}
+
+	void characterSelect(string gameInfo[])
+	{
+
+	}
+	
+	void characterResult(string gameInfo[])
+	{
+
+	}
+
+	void diceRoll(string gameInfo[])
+	{
+
+	}
+
+	void buildSettlement(string gameInfo[])
+	{
+
+	}
+
+	void upgradeToCity(string gameInfo[])
+	{
+
+	}
+
+	void buildRoad(string gameInfo[])
+	{
+
+	}
+
+	void buildArmy(string gameInfo[])
+	{
+
+	}
+
+	void attackCity(string gameInfo[])
+	{
+
+	}
+
+	void moveRobber(string gameInfo[])
+	{
+
+	}
+
+	void endTurn(string gameInfo[])
+	{
+
+	}
+
+	void startTurn(string gameInfo[])
+	{
+
+	}
+
+	void sendChat(string gameInfo[])
+	{
+
+	}
+
+	void networkError(string gameInfo[])
+	{
+
+	}
+
 }

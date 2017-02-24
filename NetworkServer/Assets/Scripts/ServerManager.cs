@@ -83,8 +83,8 @@ public class ServerManager : MonoBehaviour
 			Stream stream = new MemoryStream (recBuffer);
 			BinaryFormatter formatter = new BinaryFormatter ();
 			string message = formatter.Deserialize (stream) as string;
-            messagesField.text = messagesField.text + "\n" + "Incoming data event recieved";
-            proccessNetworkMessage(message);
+         messagesField.text = messagesField.text + "\n" + "Incoming data event recieved";
+         proccessNetworkMessage(message);
 			break;
 		case NetworkEventType.DisconnectEvent:
             messagesField.text = messagesField.text + "\n" + "Remote client event disconnected";
@@ -96,7 +96,7 @@ public class ServerManager : MonoBehaviour
 	public void addGame(string[] gameInfo)
 	{
 		game = new NetworkGame();
-        game.ipAddress       = gameInfo[1];
+      game.ipAddress       = gameInfo[1];
 		game.gameName        = gameInfo[2];
 		game.numberOfPlayers = gameInfo[3];
 		game.maxPlayers      = gameInfo[4];
