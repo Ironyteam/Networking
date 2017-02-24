@@ -19,7 +19,6 @@ public class ServerManager : MonoBehaviour
 	const string SEND_GAME_LIST = "3";
 	const string REMOVE_GAME    = "4";
 
-
 	public Text messagesField;
 	public NetworkGame game;
 	List<NetworkGame> gameList = new List<NetworkGame>(); 
@@ -28,7 +27,7 @@ public class ServerManager : MonoBehaviour
 	void Start () 
 	{
 		int maxConnections = 5;
-
+		
 		// Opens a port on local computer that will be used for sending and recieving, done on client and server
 		NetworkTransport.Init ();
 		ConnectionConfig config = new ConnectionConfig();

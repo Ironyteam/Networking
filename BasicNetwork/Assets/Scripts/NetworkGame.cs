@@ -20,13 +20,13 @@ namespace GameClass
       public string maxPlayers;
       public string password;
 		public string mapName;
-        /*
+      /*
 		public string IpAddress { get { return ipAddress; } set { ipAddress = value; } }
 		public string GameName { get; set;}
 		public string NumberOfPlayers { get; set;}
 		public string MaxPlayers { get; set;}
 		public string Password { get; set;}
-        */
+      */
 	}
 }
 

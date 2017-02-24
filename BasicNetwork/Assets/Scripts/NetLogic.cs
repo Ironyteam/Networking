@@ -5,30 +5,10 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using namespace Constants
+using Constants;
 
 public class NetLogic : MonoBehaviour 
 {
- /*   const string ADDGAME         = "1";
-    const string ADDPLAYER       = "2";
-    const string SENDGAMELIST    = "3";
-    const string CANCELGAME      = "4";
-	const string GAMESTARTED     = "5";
-	const string GAMEENDED       = "6";
-	const string CHARACTERSELECT = "7";
-	const string DICEROLL        = "8";
-	const string BUILDSETTLEMENT = "9";
-	const string UPGRADETOCITY   = "10";
-	const string BUILDROAD       = "11";
-	const string BUILDARMY       = "12";
-	const string ROBBERMOVE      = "13";
-	const string ATTACKCITY      = "14";
-	const string ENDTURN         = "15";
-	const string STARTTURN       = "16";
-	const string SENDCHAT        = "17";
-	const string ERROR           = "18";
-*/
-
 	int myReliableChannelId;
 	int socketId;
 	int socketPort = 5010;
@@ -124,124 +104,127 @@ public class NetLogic : MonoBehaviour
 		}
 	}
 
-	void processNetworkMessage(string networkMessage);
+	public void processNetworkMessage(string networkMessage)
 	{
 		string[] gameInfo = networkMessage.Split (',');
+
 		switch (gameInfo[0])
 		{
-			case Constants.addGame:
-			case Constants.addPlayer:
-			case Constants.requestGameList:
-			case Constants.cancelGame:
-			case Constants.gameStarted:
-			case Constants.gameEnded:
-			case Constants.characterSelect:
-			case Constants.characterResult:
-			case Constants.diceRoll:
-			case Constants.buildSettlement:
-			case Constants.upgradeToCity:
-			case Constants.buildRoad:
-			case Constants.buildArmy:
-			case Constants.attackCity:
-			case Constants.moveRobber:
-			case Constants.endTurn:
-			case Constants.startTurn:
-			case Constants.sendChat:
-			case Constants.error:
+			case Constants.addGame:         // #, ipAddress, gameName, players, maxPlayers, password, mapName
+			case Constants.addPlayer:       // #, ipAddress, password
+			case Constants.requestGameList: // #, game:game:game:game...
+			case Constants.cancelGame:      // #, ipAddress
+			case Constants.gameStarted:     // #, ipAddress
+			case Constants.gameEnded:       // #, ipAddress
+			case Constants.characterSelect: // #, character
+			case Constants.characterResult: // #, characterResult
+			case Constants.diceRoll:        // #, number1, number2
+			case Constants.buildSettlement: // #, x, y, player
+			case Constants.upgradeToCity:   // #, x, y, player
+			case Constants.buildRoad:       // #, x, y, player
+			case Constants.buildArmy:       // #, x, y, player
+			case Constants.attackCity:      // #, x, y, player
+			case Constants.moveRobber:      // #, x, y
+			case Constants.endTurn:         // #, player
+			case Constants.startTurn:       // #, player
+			case Constants.sendChat:        // #, player
+			case Constants.error:           // #, info
+				break;
 		}
 	}
 
-	void addGame(string gameInfo[])
+
+	void addGame(string[] gameInfo)
+	{
+		
+	}
+
+	void addPlayer(string[] gameInfo)
 	{
 
 	}
 
-	void addPlayer(string gameInfo[])
+	void requestGameList(string[] gameInfo)
 	{
 
 	}
 
-	void requestGameList(string gameInfo[])
-	{
-
-	}
-
-	void cancelGame(string gameInfo[])
-	{
-
-	}
-	
-	void gameStarted(string gameInfo[])
-	{
-
-	}
-
-	void gameEnded(string gameInfo[])
-	{
-
-	}
-
-	void characterSelect(string gameInfo[])
+	void cancelGame(string[] gameInfo)
 	{
 
 	}
 	
-	void characterResult(string gameInfo[])
+	void gameStarted(string[] gameInfo)
 	{
 
 	}
 
-	void diceRoll(string gameInfo[])
+	void gameEnded(string[] gameInfo)
 	{
 
 	}
 
-	void buildSettlement(string gameInfo[])
+	void characterSelect(string[] gameInfo)
+	{
+
+	}
+	
+	void characterResult(string[] gameInfo)
 	{
 
 	}
 
-	void upgradeToCity(string gameInfo[])
+	void diceRoll(string[] gameInfo)
 	{
 
 	}
 
-	void buildRoad(string gameInfo[])
+	void buildSettlement(string[] gameInfo)
 	{
 
 	}
 
-	void buildArmy(string gameInfo[])
+	void upgradeToCity(string[] gameInfo)
 	{
 
 	}
 
-	void attackCity(string gameInfo[])
+	void buildRoad(string[] gameInfo)
 	{
 
 	}
 
-	void moveRobber(string gameInfo[])
+	void buildArmy(string[] gameInfo)
 	{
 
 	}
 
-	void endTurn(string gameInfo[])
+	void attackCity(string[] gameInfo)
 	{
 
 	}
 
-	void startTurn(string gameInfo[])
+	void moveRobber(string[] gamInfo)
 	{
 
 	}
 
-	void sendChat(string gameInfo[])
+	void endTurn(string[] gamInfo)
 	{
 
 	}
 
-	void networkError(string gameInfo[])
+	void startTurn(string[] gamInfo)
+	{
+
+	}
+
+	void sendChat(string[] gamInfo)
+	{
+
+	}
+
+	void networkError(string[] gamInfo)
 	{
 
 	}
