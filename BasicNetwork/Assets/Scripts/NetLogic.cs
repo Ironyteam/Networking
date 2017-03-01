@@ -1,11 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using Constants;
 
 public class NetLogic : MonoBehaviour 
 {
@@ -13,8 +10,9 @@ public class NetLogic : MonoBehaviour
 	int socketId;
 	int socketPort = 5010;
 	int connectionId;
-
+	string gameName = "My Game";
     bool isHostingGame;
+	list<string[]> gameList = new list<string[]>();
 
 	public Text messageInputField;
 	public Text messageLog;
@@ -35,21 +33,28 @@ public class NetLogic : MonoBehaviour
 		messageLog.text = messageLog.text + "\n" + "Socket open. Socket ID is : " + socketId;			
 	}
 
+	// Function to allow a testing button press
+	public void connecToGameBTN()
+	{
+		connectToGame(ipField.text);
+	}
+	
 	// Client connecting to server
-	public void connectToGame()
+	public void connectToGame(string ipAddress)
 	{
 		byte error;
-		connectionId = NetworkTransport.Connect (0, ipField.text, socketPort, 0, out error);
-		messageLog.text = messageLog.text + "\n" + "Connected to server. ConnectionID: " + connectionId;
+		connectionId = NetworkTransport.Connect (0, ipAddress, socketPort, 0, out error);
+		messageLog.text = messageLog.text + "\n" + "Connected to server. ConnectionID: " + connectionId + " IP: " + ipField.text;
 	}
 
+	// Send game info to the server
     public void hostGame()
     {
         if (!isHostingGame)
         {
             string gameInfo;
             isHostingGame = true;
-            gameInfo = ADDGAME + "," + Network.player.ipAddress + "," + GAMENAME + "," + "6" + "," + "6" + "," + "password";
+            gameInfo = Constants.addGame + "," + Network.player.ipAddress + "," + gameName + "," + "6" + "," + "6" + "," + "password" + "," + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
             sendSocketMessage(gameInfo);
         }
@@ -58,6 +63,8 @@ public class NetLogic : MonoBehaviour
             messageLog.text = messageLog.text + "\nError: Already hosting a game.";
         }
     }
+	
+	// Send a socket message to connectionId
 	public void sendSocketMessage(string message) 
 	{
 		byte error;
@@ -110,25 +117,43 @@ public class NetLogic : MonoBehaviour
 
 		switch (gameInfo[0])
 		{
-			case Constants.addGame:         // #, ipAddress, gameName, players, maxPlayers, password, mapName
-			case Constants.addPlayer:       // #, ipAddress, password
-			case Constants.requestGameList: // #, game:game:game:game...
-			case Constants.cancelGame:      // #, ipAddress
-			case Constants.gameStarted:     // #, ipAddress
-			case Constants.gameEnded:       // #, ipAddress
+			// Commented out cases shouldn't be needed on the clients
+			//case Constants.addGame:         // #, ipAddress, gameName, players, maxPlayers, password, mapName
+			//case Constants.addPlayer:       // #, ipAddress, password
+			case Constants.requestGameList: // #, game, game, game, game...
+				requestGameList(gameInfo);
+				break;
+			//case Constants.cancelGame:      // #, ipAddress
+			//case Constants.gameStarted:     // #, ipAddress
+			//case Constants.gameEnded:       // #, ipAddress
 			case Constants.characterSelect: // #, character
+				break;
 			case Constants.characterResult: // #, characterResult
+				break;
 			case Constants.diceRoll:        // #, number1, number2
+				break;
 			case Constants.buildSettlement: // #, x, y, player
+				break;
 			case Constants.upgradeToCity:   // #, x, y, player
+				break;
 			case Constants.buildRoad:       // #, x, y, player
+				break;
 			case Constants.buildArmy:       // #, x, y, player
+				break;
 			case Constants.attackCity:      // #, x, y, player
+				break;
 			case Constants.moveRobber:      // #, x, y
+				break;
 			case Constants.endTurn:         // #, player
+				break;
 			case Constants.startTurn:       // #, player
+				break;
 			case Constants.sendChat:        // #, player
-			case Constants.error:           // #, info
+				break;
+			case Constants.networkError:    // #, info
+				break;
+			default:
+				networkError(gameInfo)
 				break;
 		}
 	}
@@ -144,36 +169,49 @@ public class NetLogic : MonoBehaviour
 
 	}
 
+	// Gets a list of games from the server
 	void requestGameList(string[] gameInfo)
 	{
-
+		gameList.Clear();
+		
+		foreach (string game in gameInfo)
+		{
+			string[] tempGame = game.Split(":");
+			gameList.Add(tempGame);
+		}
 	}
 
+	// Tell the server that game is canceled
 	void cancelGame(string[] gameInfo)
 	{
 
 	}
 	
+	// Tell the server the game has started
 	void gameStarted(string[] gameInfo)
 	{
 
 	}
 
+	// Tell the server the game has finished
 	void gameEnded(string[] gameInfo)
 	{
 
 	}
 
+	// Send character select choice
 	void characterSelect(string[] gameInfo)
 	{
 
 	}
 	
+	// Recieve message telling if character choice was successful
 	void characterResult(string[] gameInfo)
 	{
 
 	}
 
+	// Get the result of a dice roll
 	void diceRoll(string[] gameInfo)
 	{
 
@@ -224,6 +262,7 @@ public class NetLogic : MonoBehaviour
 
 	}
 
+	// Called if invalid network message is sent
 	void networkError(string[] gamInfo)
 	{
 
