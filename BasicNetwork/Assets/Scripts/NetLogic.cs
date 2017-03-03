@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -12,7 +14,9 @@ public class NetLogic : MonoBehaviour
 	int connectionId;
 	string gameName = "My Game";
     bool isHostingGame;
-	list<string[]> gameList = new list<string[]>();
+	List<string[]> gameList = new List<string[]>();
+	public GameObject gameInfoPanel;
+	public GameObject gameListCanvas;
 
 	public Text messageInputField;
 	public Text messageLog;
@@ -53,7 +57,7 @@ public class NetLogic : MonoBehaviour
         if (!isHostingGame)
         {
             string gameInfo;
-            isHostingGame = true;
+            //isHostingGame = true;
             gameInfo = Constants.addGame + "," + Network.player.ipAddress + "," + gameName + "," + "6" + "," + "6" + "," + "password" + "," + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
             sendSocketMessage(gameInfo);
@@ -104,6 +108,7 @@ public class NetLogic : MonoBehaviour
 			string message = formatter.Deserialize (stream) as string;
 			messageLog.text = messageLog.text + "\n" + message;
 			processNetworkMessage(message);
+			Debug.Log("Message Recieved");
 			break;
 		case NetworkEventType.DisconnectEvent:
 			messageLog.text = messageLog.text + "\n" + "Remote client event disconnected";
@@ -121,9 +126,11 @@ public class NetLogic : MonoBehaviour
 			//case Constants.addGame:         // #, ipAddress, gameName, players, maxPlayers, password, mapName
 			//case Constants.addPlayer:       // #, ipAddress, password
 			case Constants.requestGameList: // #, game, game, game, game...
-				requestGameList(gameInfo);
+				string[] messageInfo = new string[gameInfo.Length - 1];
+				Array.Copy(gameInfo, 1, messageInfo, 0, gameInfo.Length - 1);
+				requestGameList(messageInfo);
 				break;
-			//case Constants.cancelGame:      // #, ipAddress
+			case Constants.cancelGame:      // #
 			//case Constants.gameStarted:     // #, ipAddress
 			//case Constants.gameEnded:       // #, ipAddress
 			case Constants.characterSelect: // #, character
@@ -152,8 +159,8 @@ public class NetLogic : MonoBehaviour
 				break;
 			case Constants.networkError:    // #, info
 				break;
-			default:
-				networkError(gameInfo)
+		    default:
+				networkError (gameInfo);
 				break;
 		}
 	}
@@ -166,31 +173,71 @@ public class NetLogic : MonoBehaviour
 
 	void addPlayer(string[] gameInfo)
 	{
-
+		
 	}
-
+	
+	public void requestGameListServer()
+	{
+		sendSocketMessage("3,172.16.51.102");
+	}
+	
 	// Gets a list of games from the server
 	void requestGameList(string[] gameInfo)
 	{
 		gameList.Clear();
-		
+		messageLog.text = messageLog.text + "\n" + "Trying to add a game";
 		foreach (string game in gameInfo)
 		{
-			string[] tempGame = game.Split(":");
+			string[] tempGame = game.Split(':');
+			foreach (string item in tempGame)
+			{
+				messageLog.text = messageLog.text + item;
+			}
 			gameList.Add(tempGame);
+			messageLog.text = messageLog.text + "\n" + "Adding a Game";
+		}
+	}
+	
+	public void makeGameList()
+	{
+		/*foreach (Transform child in gameListCanvas.transform)
+		{
+			GameObject.Destroy(child.gameObject);
+		}*/
+		
+		foreach (string[] gameInfo in gameList)
+		{
+			GameObject game = Instantiate(gameInfoPanel) as GameObject;
+			game.transform.SetParent(gameListCanvas.transform, false);
+			Text[] nameText = game.GetComponentsInChildren<Text>();
+			messageLog.text = messageLog.text + "\n Printing what is passed " + gameInfo[1] + gameInfo[2] + gameInfo[3] + gameInfo[4] + gameInfo[5];
+			nameText[0].text = gameInfo[1];
+			nameText[1].text = gameInfo[2];
+			nameText[2].text = "\\" + gameInfo[3];
+			nameText[3].text = gameInfo[4];
+			nameText[4].text = gameInfo[5];
+		}
+	}
+
+	// Update lobby game list
+	void refreshGameList()
+	{
+		foreach (string[] game in gameList)
+		{
+			// Instatiate game list scolling panel object
 		}
 	}
 
 	// Tell the server that game is canceled
-	void cancelGame(string[] gameInfo)
+	void cancelGame()
 	{
-
+		isHostingGame = false;
 	}
 	
 	// Tell the server the game has started
 	void gameStarted(string[] gameInfo)
 	{
-
+		
 	}
 
 	// Tell the server the game has finished

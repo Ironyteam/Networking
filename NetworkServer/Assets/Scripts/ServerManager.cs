@@ -55,7 +55,7 @@ public class ServerManager : MonoBehaviour
 
 		int bufferSize = 1024;
 
-		NetworkTransport.Send (socketId, connectionId, myReliableChannelId, buffer, bufferSize, out error);
+		NetworkTransport.Send (socketId, 1, myReliableChannelId, buffer, bufferSize, out error);
 	}
 
 	// Called every frame
@@ -88,6 +88,11 @@ public class ServerManager : MonoBehaviour
             messagesField.text = messagesField.text + "\n" + "Remote client event disconnected";
 			break;
 		}
+	}
+
+	public void clearMessages()
+	{
+		messagesField.text = "Messages Cleared.";
 	}
 
 	public void listGames()
@@ -139,12 +144,14 @@ public class ServerManager : MonoBehaviour
 	// Send the list of games to the ip address
 	public void sendGameList(string targetIP)
 	{
-		string gamesString = "";
+		string gamesString = "3";
 		byte error;
+		
 		foreach(NetworkGame game in gameList)
 		{
-			gamesString = gamesString + game.ipAddress + "," + game.gameName + "," + game.numberOfPlayers + "," + game.maxPlayers + "," + game.password + ":";
+			gamesString = gamesString + "," + game.ipAddress + ":" + game.gameName + ":" + game.numberOfPlayers + ":" + game.maxPlayers + ":" + game.password + ":" + game.mapName;
 		}
+		
 		connectToGame(targetIP);
 		sendSocketMessage(gamesString);
 		NetworkTransport.Disconnect(socketId, connectionId, out error);
@@ -167,7 +174,7 @@ public class ServerManager : MonoBehaviour
 				addPlayer (gameInfo [1]);
 				break;
 			case SEND_GAME_LIST:
-                messagesField.text = messagesField.text + "\n" + "Sending Game List";
+                messagesField.text = messagesField.text + "\n" + "Sending Game List to ip" + gameInfo[1];
 				sendGameList(gameInfo[1]);
 				break;
 			case REMOVE_GAME:
