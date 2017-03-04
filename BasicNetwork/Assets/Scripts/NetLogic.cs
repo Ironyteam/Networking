@@ -13,7 +13,7 @@ public class NetLogic : MonoBehaviour
 	int socketPort = 5010;
 	int connectionId;
 	string gameName = "My Game";
-    bool isHostingGame;
+   bool isHostingGame;
 	List<string[]> gameList = new List<string[]>();
 	public GameObject gameInfoPanel;
 	public GameObject gameListCanvas;
@@ -58,7 +58,7 @@ public class NetLogic : MonoBehaviour
         {
             string gameInfo;
             //isHostingGame = true;
-            gameInfo = Constants.addGame + "," + Network.player.ipAddress + "," + gameName + "," + "6" + "," + "6" + "," + "password" + "," + "Binary";
+            gameInfo = Constants.addGame + ":" + Network.player.ipAddress + "," + gameName + "," + "6" + "," + "6" + "," + "password" + "," + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
             sendSocketMessage(gameInfo);
         }
@@ -118,7 +118,7 @@ public class NetLogic : MonoBehaviour
 
 	public void processNetworkMessage(string networkMessage)
 	{
-		string[] gameInfo = networkMessage.Split (',');
+		string[] gameInfo = networkMessage.Split (':');
 
 		switch (gameInfo[0])
 		{
@@ -126,9 +126,7 @@ public class NetLogic : MonoBehaviour
 			//case Constants.addGame:         // #, ipAddress, gameName, players, maxPlayers, password, mapName
 			//case Constants.addPlayer:       // #, ipAddress, password
 			case Constants.requestGameList: // #, game, game, game, game...
-				string[] messageInfo = new string[gameInfo.Length - 1];
-				Array.Copy(gameInfo, 1, messageInfo, 0, gameInfo.Length - 1);
-				requestGameList(messageInfo);
+				requestGameList(gameInfo[1]);
 				break;
 			case Constants.cancelGame:      // #
 			//case Constants.gameStarted:     // #, ipAddress
@@ -160,11 +158,10 @@ public class NetLogic : MonoBehaviour
 			case Constants.networkError:    // #, info
 				break;
 		    default:
-				networkError (gameInfo);
+				networkError (gameInfo[1]);
 				break;
 		}
 	}
-
 
 	void addGame(string[] gameInfo)
 	{
@@ -178,17 +175,18 @@ public class NetLogic : MonoBehaviour
 	
 	public void requestGameListServer()
 	{
-		sendSocketMessage("3,172.16.51.102");
+		sendSocketMessage(Constants.requestGameList + ",172.16.51.102");
 	}
 	
 	// Gets a list of games from the server
-	void requestGameList(string[] gameInfo)
+	void requestGameList(string serverGameList)
 	{
 		gameList.Clear();
+		string[] gameInfo = serverGameList.Split (';');
 		messageLog.text = messageLog.text + "\n" + "Trying to add a game";
 		foreach (string game in gameInfo)
 		{
-			string[] tempGame = game.Split(':');
+			string[] tempGame = game.Split(',');
 			foreach (string item in tempGame)
 			{
 				messageLog.text = messageLog.text + item;
@@ -205,17 +203,17 @@ public class NetLogic : MonoBehaviour
 			GameObject.Destroy(child.gameObject);
 		}*/
 		
-		foreach (string[] gameInfo in gameList)
+		foreach (string[] game in gameList)
 		{
-			GameObject game = Instantiate(gameInfoPanel) as GameObject;
-			game.transform.SetParent(gameListCanvas.transform, false);
-			Text[] nameText = game.GetComponentsInChildren<Text>();
-			messageLog.text = messageLog.text + "\n Printing what is passed " + gameInfo[1] + gameInfo[2] + gameInfo[3] + gameInfo[4] + gameInfo[5];
-			nameText[0].text = gameInfo[1];
-			nameText[1].text = gameInfo[2];
-			nameText[2].text = "\\" + gameInfo[3];
-			nameText[3].text = gameInfo[4];
-			nameText[4].text = gameInfo[5];
+			GameObject serverGame = Instantiate(gameInfoPanel) as GameObject;
+			serverGame.transform.SetParent(gameListCanvas.transform, false);
+			Text[] nameText = serverGame.GetComponentsInChildren<Text>();
+			messageLog.text = messageLog.text + "\n Printing what is passed " + game[1] + game[2] + game[3] + game[4] + game[5];
+			nameText[0].text = game[1];
+			nameText[1].text = game[2];
+			nameText[2].text = "\\" + game[3];
+			nameText[3].text = game[4];
+			nameText[4].text = game[5];
 		}
 	}
 
@@ -310,7 +308,7 @@ public class NetLogic : MonoBehaviour
 	}
 
 	// Called if invalid network message is sent
-	void networkError(string[] gamInfo)
+	void networkError(string gamInfo)
 	{
 
 	}

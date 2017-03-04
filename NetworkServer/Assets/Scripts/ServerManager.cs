@@ -13,6 +13,7 @@ public class ServerManager : MonoBehaviour
 	int socketId;
 	int socketPort = 5010;
 	int connectionId;
+
 	const string ADD_GAME       = "1";
 	const string ADD_PLAYER     = "2";
 	const string SEND_GAME_LIST = "3";
@@ -20,6 +21,8 @@ public class ServerManager : MonoBehaviour
 
 	public Text messagesField;
 	public NetworkGame game;
+	public GameObject gameListPanel;
+	public GameObject gamePanel;
 	List<NetworkGame> gameList = new List<NetworkGame>(); 
 
 	// Use this for initialization
@@ -44,7 +47,7 @@ public class ServerManager : MonoBehaviour
         messagesField.text = messagesField.text + "\n" + "Connected to server. ConnectionID: " + connectionId;
 	}
 
-	public void sendSocketMessage(string sendMessage) 
+	public void sendSocketMessage(string sendMessage, int connectionNumber) 
 	{
 		byte error;
 		byte[] buffer = new byte[1024];
@@ -55,7 +58,7 @@ public class ServerManager : MonoBehaviour
 
 		int bufferSize = 1024;
 
-		NetworkTransport.Send (socketId, 1, myReliableChannelId, buffer, bufferSize, out error);
+		NetworkTransport.Send (socketId, connectionNumber, myReliableChannelId, buffer, bufferSize, out error);
 	}
 
 	// Called every frame
@@ -75,17 +78,46 @@ public class ServerManager : MonoBehaviour
 		case NetworkEventType.Nothing:
 			break;
 		case NetworkEventType.ConnectEvent:
-            messagesField.text = messagesField.text + "\n" + "Incoming connection event received";
+         	messagesField.text = messagesField.text + "\n" + "Incoming connection event received";
+			Debug.Log(recConnectionId);
 			break;
 		case NetworkEventType.DataEvent:
 			Stream stream = new MemoryStream (recBuffer);
 			BinaryFormatter formatter = new BinaryFormatter ();
 			string message = formatter.Deserialize (stream) as string;
          	messagesField.text = messagesField.text + "\n" + "Incoming data event recieved";
-         	proccessNetworkMessage(message);
+			proccessNetworkMessage(message, recConnectionId);
 			break;
 		case NetworkEventType.DisconnectEvent:
-            messagesField.text = messagesField.text + "\n" + "Remote client event disconnected";
+         messagesField.text = messagesField.text + "\n" + "Remote client event disconnected";
+			break;
+		}
+	}
+
+	// See what type of network message was sent
+	void proccessNetworkMessage(string networkMessage, int hostNumber)
+	{
+		messagesField.text = messagesField.text + "\n" + networkMessage;
+		// Parse the recieved string into strings based on commas
+		string[] splitMessage = networkMessage.Split (':');
+		string[] messageInfo  = splitMessage[1].Split(',');
+		switch (splitMessage[0])
+		{
+		case ADD_GAME:
+			messagesField.text = messagesField.text + "\n" + "Adding Game";
+			addGame(messageInfo);
+			break;
+		case ADD_PLAYER:
+			messagesField.text = messagesField.text + "\n" + "Adding Player";
+			addPlayer (messageInfo[0]);
+			break;
+		case SEND_GAME_LIST:
+			messagesField.text = messagesField.text + "\n" + "Sending Game List to ip" + messageInfo[0];
+			sendGameList(messageInfo[0], hostNumber);
+			break;
+		case REMOVE_GAME:
+			messagesField.text = messagesField.text + "\n" + "Removing Game";
+			removeGame (messageInfo[0]);
 			break;
 		}
 	}
@@ -107,13 +139,21 @@ public class ServerManager : MonoBehaviour
 	public void addGame(string[] gameInfo)
 	{
 		game = new NetworkGame();
-      	game.ipAddress       = gameInfo[1];
-		game.gameName        = gameInfo[2];
-		game.numberOfPlayers = gameInfo[3];
-		game.maxPlayers      = gameInfo[4];
-		game.password        = gameInfo[5];
-		game.mapName         = gameInfo[6];
+      	game.ipAddress       = gameInfo[0];
+		game.gameName        = gameInfo[1];
+		game.numberOfPlayers = gameInfo[2];
+		game.maxPlayers      = gameInfo[3];
+		game.password        = gameInfo[4];
+		game.mapName         = gameInfo[5];
 		gameList.Add(game);
+		GameObject gamePNL = Instantiate (gamePanel) as GameObject;
+		gamePNL.transform.SetParent (gameListPanel.transform, false);
+		Text[] nameText = gamePNL.GetComponentsInChildren<Text>();
+		nameText[0].text =        gameInfo[1];
+		nameText[1].text =        gameInfo[2];
+		nameText[2].text = "\\" + gameInfo[3];
+		nameText[3].text =        gameInfo[4];
+		nameText[4].text =        gameInfo[5];
 	}
 
 	// Increase the player count of a game
@@ -142,45 +182,20 @@ public class ServerManager : MonoBehaviour
 	}
 
 	// Send the list of games to the ip address
-	public void sendGameList(string targetIP)
+	public void sendGameList(string targetIP, int hostNumber)
 	{
-		string gamesString = "3";
+		string gamesString = SEND_GAME_LIST + ":";
 		byte error;
 		
+		// Makes a string of format 3:game;game;game...
 		foreach(NetworkGame game in gameList)
 		{
-			gamesString = gamesString + "," + game.ipAddress + ":" + game.gameName + ":" + game.numberOfPlayers + ":" + game.maxPlayers + ":" + game.password + ":" + game.mapName;
+			gamesString = gamesString + game.ipAddress + "," + game.gameName + "," + game.numberOfPlayers + "," + game.maxPlayers + "," + game.password + "," + game.mapName + ";";
 		}
-		
-		connectToGame(targetIP);
-		sendSocketMessage(gamesString);
-		NetworkTransport.Disconnect(socketId, connectionId, out error);
-	}
+		// Removes the last semicolon from the list
+		gamesString = gamesString.Substring(0, gamesString.Length-1);
 
-	// See what type of network message was sent
-	void proccessNetworkMessage(string networkMessage)
-	{
-        messagesField.text = messagesField.text + "\n" + networkMessage;
-		// Parse the recieved string into strings based on commas
-		string[] gameInfo = networkMessage.Split (',');
-		switch (gameInfo[0])
-		{
-			case ADD_GAME:
-                messagesField.text = messagesField.text + "\n" + "Adding Game";
-				addGame(gameInfo);
-				break;
-			case ADD_PLAYER:
-                messagesField.text = messagesField.text + "\n" + "Adding Player";
-				addPlayer (gameInfo [1]);
-				break;
-			case SEND_GAME_LIST:
-                messagesField.text = messagesField.text + "\n" + "Sending Game List to ip" + gameInfo[1];
-				sendGameList(gameInfo[1]);
-				break;
-			case REMOVE_GAME:
-                messagesField.text = messagesField.text + "\n" + "Removing Game";
-				removeGame (gameInfo [1]);
-				break;
-		}
+		sendSocketMessage(gamesString, hostNumber);
+		NetworkTransport.Disconnect(socketId, connectionId, out error);
 	}
 }

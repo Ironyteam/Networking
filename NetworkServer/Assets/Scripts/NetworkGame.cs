@@ -7,7 +7,7 @@ public class NetworkGame
 	public string ipAddress;
 	public string gameName;
  	public string numberOfPlayers;
-    public string maxPlayers;
+   public string maxPlayers;
  	public string password;
 	public string mapName;
 
