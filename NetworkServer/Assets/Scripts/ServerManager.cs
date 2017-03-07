@@ -18,6 +18,7 @@ public class ServerManager : MonoBehaviour
 	const string ADD_PLAYER     = "2";
 	const string SEND_GAME_LIST = "3";
 	const string REMOVE_GAME    = "4";
+	const string COMMAND_QUIT   = "1234";
 
 	public Text messagesField;
 	public NetworkGame game;
@@ -105,7 +106,7 @@ public class ServerManager : MonoBehaviour
 		{
 		case ADD_GAME:
 			messagesField.text = messagesField.text + "\n" + "Adding Game";
-			addGame(messageInfo);
+			addGame(messageInfo, hostNumber);
 			break;
 		case ADD_PLAYER:
 			messagesField.text = messagesField.text + "\n" + "Adding Player";
@@ -136,15 +137,16 @@ public class ServerManager : MonoBehaviour
 	}
 
 	// Add a game to the server list
-	public void addGame(string[] gameInfo)
+	public void addGame(string[] gameInfo, int hostNumber)
 	{
 		game = new NetworkGame();
-      	game.ipAddress       = gameInfo[0];
+      game.ipAddress       = gameInfo[0];
 		game.gameName        = gameInfo[1];
 		game.numberOfPlayers = gameInfo[2];
 		game.maxPlayers      = gameInfo[3];
 		game.password        = gameInfo[4];
 		game.mapName         = gameInfo[5];
+		game.connectionID    = hostNumber;
 		gameList.Add(game);
 		GameObject gamePNL = Instantiate (gamePanel) as GameObject;
 		gamePNL.transform.SetParent (gameListPanel.transform, false);
@@ -169,6 +171,17 @@ public class ServerManager : MonoBehaviour
 				item.numberOfPlayers = currentNumber.ToString();
 			}
 		}
+	}
+
+	// Remove a game from the server side
+	public void forceRemoveGame()
+	{
+		Text[] gameTextBoxes = this.GetComponentsInParent<Text>();
+		removeGame(gameTextBoxes[5].text);
+		var targetGame = gameList.FirstOrDefault(o => o.ipAddress == gameTextBoxes[5].text);
+		string removeGameMessage = REMOVE_GAME + ":" + COMMAND_QUIT;
+		Destroy(this.transform.parent.gameObject);
+		sendSocketMessage(removeGameMessage, targetGame.connectionID);
 	}
 
 	// Remove a game from the list

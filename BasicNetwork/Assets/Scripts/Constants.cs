@@ -21,4 +21,5 @@ public static class Constants
    public const string startTurn       = "17";
    public const string sendChat        = "18";
    public const string networkError    = "19";
+   public const string serverKillCode  = "1234";
 }

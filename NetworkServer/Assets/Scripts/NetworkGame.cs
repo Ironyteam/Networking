@@ -10,6 +10,7 @@ public class NetworkGame
    public string maxPlayers;
  	public string password;
 	public string mapName;
+	public int connectionID;
 
 	public string listGame()
 	{

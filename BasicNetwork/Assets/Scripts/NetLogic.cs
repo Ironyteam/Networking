@@ -57,7 +57,7 @@ public class NetLogic : MonoBehaviour
         if (!isHostingGame)
         {
             string gameInfo;
-            //isHostingGame = true;
+            isHostingGame = true;
             gameInfo = Constants.addGame + ":" + Network.player.ipAddress + "," + gameName + "," + "6" + "," + "6" + "," + "password" + "," + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
             sendSocketMessage(gameInfo);
@@ -129,6 +129,8 @@ public class NetLogic : MonoBehaviour
 				requestGameList(gameInfo[1]);
 				break;
 			case Constants.cancelGame:      // #
+				removeGame(gameInfo[1]);
+				break;
 			//case Constants.gameStarted:     // #, ipAddress
 			//case Constants.gameEnded:       // #, ipAddress
 			case Constants.characterSelect: // #, character
@@ -156,6 +158,7 @@ public class NetLogic : MonoBehaviour
 			case Constants.sendChat:        // #, player
 				break;
 			case Constants.networkError:    // #, info
+				networkError(gameInfo[1]);
 				break;
 		    default:
 				networkError (gameInfo[1]);
@@ -175,7 +178,7 @@ public class NetLogic : MonoBehaviour
 	
 	public void requestGameListServer()
 	{
-		sendSocketMessage(Constants.requestGameList + ",172.16.51.102");
+		sendSocketMessage(Constants.requestGameList + ":172.16.51.102");
 	}
 	
 	// Gets a list of games from the server
@@ -195,13 +198,23 @@ public class NetLogic : MonoBehaviour
 			messageLog.text = messageLog.text + "\n" + "Adding a Game";
 		}
 	}
-	
-	public void makeGameList()
+
+	// Stop game from hosting if server sends a kill command
+	public void removeGame(string gameInfo)
 	{
-		/*foreach (Transform child in gameListCanvas.transform)
+		if (gameInfo == Constants.serverKillCode)
+		{
+			isHostingGame = false;
+			messageLog.text = messageLog.text + "\n Your game has been canceled.";
+		}
+	}
+	
+	public void refreshGameList()
+	{
+		foreach (Transform child in gameListCanvas.transform)
 		{
 			GameObject.Destroy(child.gameObject);
-		}*/
+		}
 		
 		foreach (string[] game in gameList)
 		{
@@ -209,20 +222,11 @@ public class NetLogic : MonoBehaviour
 			serverGame.transform.SetParent(gameListCanvas.transform, false);
 			Text[] nameText = serverGame.GetComponentsInChildren<Text>();
 			messageLog.text = messageLog.text + "\n Printing what is passed " + game[1] + game[2] + game[3] + game[4] + game[5];
-			nameText[0].text = game[1];
-			nameText[1].text = game[2];
+			nameText[0].text =        game[1];
+			nameText[1].text = 		  game[2];
 			nameText[2].text = "\\" + game[3];
-			nameText[3].text = game[4];
-			nameText[4].text = game[5];
-		}
-	}
-
-	// Update lobby game list
-	void refreshGameList()
-	{
-		foreach (string[] game in gameList)
-		{
-			// Instatiate game list scolling panel object
+			nameText[3].text =        game[4];
+			nameText[4].text =        game[5];
 		}
 	}
 
