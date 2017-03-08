@@ -13,7 +13,8 @@ public class NetLogic : MonoBehaviour
 	int socketPort = 5010;
 	int connectionId;
 	string gameName = "My Game";
-   bool isHostingGame;
+	bool isHostingGame;
+	const string myIP = "127.0.0.1";
 	List<string[]> gameList = new List<string[]>();
 	public GameObject gameInfoPanel;
 	public GameObject gameListCanvas;
@@ -57,8 +58,9 @@ public class NetLogic : MonoBehaviour
         if (!isHostingGame)
         {
             string gameInfo;
-            isHostingGame = true;
-            gameInfo = Constants.addGame + ":" + Network.player.ipAddress + "," + gameName + "," + "6" + "," + "6" + "," + "password" + "," + "Binary";
+            //isHostingGame = true;
+            gameInfo = Constants.addGame + Constants.commandDivider + Network.player.ipAddress + Constants.gameDivider + gameName + 
+				Constants.gameDivider + "6" + Constants.gameDivider + "6" + Constants.gameDivider + "password" + Constants.gameDivider + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
             sendSocketMessage(gameInfo);
         }
@@ -118,7 +120,7 @@ public class NetLogic : MonoBehaviour
 
 	public void processNetworkMessage(string networkMessage)
 	{
-		string[] gameInfo = networkMessage.Split (':');
+		string[] gameInfo = networkMessage.Split (Convert.ToChar(Constants.commandDivider));
 
 		switch (gameInfo[0])
 		{
@@ -139,18 +141,6 @@ public class NetLogic : MonoBehaviour
 				break;
 			case Constants.diceRoll:        // #, number1, number2
 				break;
-			case Constants.buildSettlement: // #, x, y, player
-				break;
-			case Constants.upgradeToCity:   // #, x, y, player
-				break;
-			case Constants.buildRoad:       // #, x, y, player
-				break;
-			case Constants.buildArmy:       // #, x, y, player
-				break;
-			case Constants.attackCity:      // #, x, y, player
-				break;
-			case Constants.moveRobber:      // #, x, y
-				break;
 			case Constants.endTurn:         // #, player
 				break;
 			case Constants.startTurn:       // #, player
@@ -161,7 +151,7 @@ public class NetLogic : MonoBehaviour
 				networkError(gameInfo[1]);
 				break;
 		    default:
-				networkError (gameInfo[1]);
+				networkError(gameInfo[1]);
 				break;
 		}
 	}
@@ -176,27 +166,29 @@ public class NetLogic : MonoBehaviour
 		
 	}
 	
+	// Ask server to send list of games
 	public void requestGameListServer()
 	{
-		sendSocketMessage(Constants.requestGameList + ":172.16.51.102");
+		sendSocketMessage(Constants.requestGameList + Constants.commandDivider + myIP);
 	}
 	
-	// Gets a list of games from the server
+	// Updates the local game list with list from server
 	void requestGameList(string serverGameList)
 	{
 		gameList.Clear();
-		string[] gameInfo = serverGameList.Split (';');
-		messageLog.text = messageLog.text + "\n" + "Trying to add a game";
+		string[] gameInfo = serverGameList.Split(Convert.ToChar(Constants.gameListDivider));
+		messageLog.text = messageLog.text + "\n" + "Adding Games\n";
 		foreach (string game in gameInfo)
 		{
-			string[] tempGame = game.Split(',');
+			string[] tempGame = game.Split(Convert.ToChar(Constants.gameDivider));
 			foreach (string item in tempGame)
 			{
 				messageLog.text = messageLog.text + item;
 			}
 			gameList.Add(tempGame);
-			messageLog.text = messageLog.text + "\n" + "Adding a Game";
+			messageLog.text = messageLog.text + "\n" + "  Adding a Game\n";
 		}
+		refreshGameList();
 	}
 
 	// Stop game from hosting if server sends a kill command
@@ -262,36 +254,6 @@ public class NetLogic : MonoBehaviour
 
 	// Get the result of a dice roll
 	void diceRoll(string[] gameInfo)
-	{
-
-	}
-
-	void buildSettlement(string[] gameInfo)
-	{
-
-	}
-
-	void upgradeToCity(string[] gameInfo)
-	{
-
-	}
-
-	void buildRoad(string[] gameInfo)
-	{
-
-	}
-
-	void buildArmy(string[] gameInfo)
-	{
-
-	}
-
-	void attackCity(string[] gameInfo)
-	{
-
-	}
-
-	void moveRobber(string[] gamInfo)
 	{
 
 	}

@@ -14,11 +14,14 @@ public class ServerManager : MonoBehaviour
 	int socketPort = 5010;
 	int connectionId;
 
-	const string ADD_GAME       = "1";
-	const string ADD_PLAYER     = "2";
-	const string SEND_GAME_LIST = "3";
-	const string REMOVE_GAME    = "4";
-	const string COMMAND_QUIT   = "1234";
+	const string ADD_GAME        = "1";
+	const string ADD_PLAYER      = "2";
+	const string SEND_GAME_LIST  = "3";
+	const string REMOVE_GAME     = "4";
+    const string commandDivider  = ":";
+    const string gameDivider     = "~";
+    const string gameListDivider = ";";
+	const string COMMAND_QUIT    = "1234";
 
 	public Text messagesField;
 	public NetworkGame game;
@@ -45,7 +48,7 @@ public class ServerManager : MonoBehaviour
 	{
 		byte error;
 		connectionId = NetworkTransport.Connect (0, connectionIP, socketPort, 0, out error);
-        messagesField.text = messagesField.text + "\n" + "Connected to server. ConnectionID: " + connectionId;
+        messagesField.text = messagesField.text + "\n" + "Connected to Client. ConnectionID: " + connectionId;
 	}
 
 	public void sendSocketMessage(string sendMessage, int connectionNumber) 
@@ -100,8 +103,8 @@ public class ServerManager : MonoBehaviour
 	{
 		messagesField.text = messagesField.text + "\n" + networkMessage;
 		// Parse the recieved string into strings based on commas
-		string[] splitMessage = networkMessage.Split (':');
-		string[] messageInfo  = splitMessage[1].Split(',');
+		string[] splitMessage = networkMessage.Split (Convert.ToChar(commandDivider));
+		string[] messageInfo  = splitMessage[1].Split(Convert.ToChar(gameDivider));
 		switch (splitMessage[0])
 		{
 		case ADD_GAME:
@@ -140,7 +143,7 @@ public class ServerManager : MonoBehaviour
 	public void addGame(string[] gameInfo, int hostNumber)
 	{
 		game = new NetworkGame();
-      game.ipAddress       = gameInfo[0];
+        game.ipAddress       = gameInfo[0];
 		game.gameName        = gameInfo[1];
 		game.numberOfPlayers = gameInfo[2];
 		game.maxPlayers      = gameInfo[3];
@@ -174,12 +177,15 @@ public class ServerManager : MonoBehaviour
 	}
 
 	// Remove a game from the server side
-	public void forceRemoveGame()
+	public void forceRemoveGame(GameObject myObject)
 	{
-		Text[] gameTextBoxes = this.GetComponentsInParent<Text>();
+        messagesField.text = messagesField.text + "\nButton Clicked";
+		Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
+        Debug.Log(gameTextBoxes.Length);
+        Debug.Log(gameTextBoxes[5].text);
 		removeGame(gameTextBoxes[5].text);
 		var targetGame = gameList.FirstOrDefault(o => o.ipAddress == gameTextBoxes[5].text);
-		string removeGameMessage = REMOVE_GAME + ":" + COMMAND_QUIT;
+		string removeGameMessage = REMOVE_GAME + commandDivider + COMMAND_QUIT;
 		Destroy(this.transform.parent.gameObject);
 		sendSocketMessage(removeGameMessage, targetGame.connectionID);
 	}
@@ -203,7 +209,8 @@ public class ServerManager : MonoBehaviour
 		// Makes a string of format 3:game;game;game...
 		foreach(NetworkGame game in gameList)
 		{
-			gamesString = gamesString + game.ipAddress + "," + game.gameName + "," + game.numberOfPlayers + "," + game.maxPlayers + "," + game.password + "," + game.mapName + ";";
+			gamesString = gamesString + game.ipAddress + gameDivider + game.gameName + gameDivider + game.numberOfPlayers + gameDivider + 
+                game.maxPlayers + gameDivider + game.password + gameDivider + game.mapName + gameListDivider;
 		}
 		// Removes the last semicolon from the list
 		gamesString = gamesString.Substring(0, gamesString.Length-1);

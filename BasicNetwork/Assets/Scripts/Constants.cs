@@ -2,10 +2,13 @@ using UnityEngine;
 
 public static class Constants
 {
+   public const string commandDivider  = ":";
+   public const string gameDivider     = "~";
+   public const string gameListDivider = ";";
    public const string addGame         = "1";
    public const string addPlayer       = "2";
    public const string requestGameList = "3";
-   public const string cancelGame      = "4";
+   public const string cancelGame      = "4"; 
    public const string gameStarted     = "5";
    public const string gameEnded       = "6";
    public const string characterSelect = "7";
