@@ -58,7 +58,7 @@ public class NetLogic : MonoBehaviour
         if (!isHostingGame)
         {
             string gameInfo;
-            //isHostingGame = true;
+            isHostingGame = true;
             gameInfo = Constants.addGame + Constants.commandDivider + Network.player.ipAddress + Constants.gameDivider + gameName + 
 				Constants.gameDivider + "6" + Constants.gameDivider + "6" + Constants.gameDivider + "password" + Constants.gameDivider + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
@@ -197,7 +197,7 @@ public class NetLogic : MonoBehaviour
 		if (gameInfo == Constants.serverKillCode)
 		{
 			isHostingGame = false;
-			messageLog.text = messageLog.text + "\n Your game has been canceled.";
+			messageLog.text = messageLog.text + "\n Your game has been canceled by the server";
 		}
 	}
 	

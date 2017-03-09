@@ -40,8 +40,9 @@ public class ServerManager : MonoBehaviour
 		myReliableChannelId = config.AddChannel (QosType.Reliable);
 		HostTopology topology = new HostTopology (config, maxConnections);
 		socketId = NetworkTransport.AddHost (topology, socketPort);
-		messagesField.text = messagesField.text + "\n" + "Socket open. Socket ID is : " + socketId;			
-	}
+		messagesField.text = messagesField.text + "\n" + "Socket open. Socket ID is : " + socketId;
+        addGame(new string [] { "123.0.0.1", "My Fake Game", "9", "10", "Nothing", "No Map"}, 1);
+    }
 
 	// Client connecting to server
 	public void connectToGame(string connectionIP)
@@ -121,7 +122,7 @@ public class ServerManager : MonoBehaviour
 			break;
 		case REMOVE_GAME:
 			messagesField.text = messagesField.text + "\n" + "Removing Game";
-			removeGame (messageInfo[0]);
+			removeGame (messageInfo[0], false);
 			break;
 		}
 	}
@@ -159,6 +160,7 @@ public class ServerManager : MonoBehaviour
 		nameText[2].text = "\\" + gameInfo[3];
 		nameText[3].text =        gameInfo[4];
 		nameText[4].text =        gameInfo[5];
+        nameText[5].text =        gameInfo[0];
 	}
 
 	// Increase the player count of a game
@@ -172,32 +174,34 @@ public class ServerManager : MonoBehaviour
 				int currentNumber = int.Parse(item.numberOfPlayers);
 				currentNumber++;
 				item.numberOfPlayers = currentNumber.ToString();
-			}
+            }
 		}
 	}
 
 	// Remove a game from the server side
 	public void forceRemoveGame(GameObject myObject)
 	{
-        messagesField.text = messagesField.text + "\nButton Clicked";
-		Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
+        messagesField.text = messagesField.text + "\nforceRemoveGame called";
+		  Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
         Debug.Log(gameTextBoxes.Length);
         Debug.Log(gameTextBoxes[5].text);
-		removeGame(gameTextBoxes[5].text);
-		var targetGame = gameList.FirstOrDefault(o => o.ipAddress == gameTextBoxes[5].text);
-		string removeGameMessage = REMOVE_GAME + commandDivider + COMMAND_QUIT;
-		Destroy(this.transform.parent.gameObject);
-		sendSocketMessage(removeGameMessage, targetGame.connectionID);
+        messagesField.text = messagesField.text + "\nForce removing game at ip: " + gameTextBoxes[5].text;
+        removeGame(gameTextBoxes[5].text, true);
 	}
 
 	// Remove a game from the list
-	public void removeGame(string targetIP)
+	public void removeGame(string targetIP, bool forceRemove)
 	{
-		var item = gameList.FirstOrDefault(o => o.ipAddress == targetIP);
-		if (item != null)
+		var game = gameList.FirstOrDefault(o => o.ipAddress == targetIP);
+		if (game != null)
 		{
-			gameList.Remove (item);
+			gameList.Remove (game);
 		}
+        if (forceRemove)
+        {
+            string removeGameMessage = REMOVE_GAME + commandDivider + COMMAND_QUIT;
+            sendSocketMessage(removeGameMessage, game.connectionID);
+        }
 	}
 
 	// Send the list of games to the ip address

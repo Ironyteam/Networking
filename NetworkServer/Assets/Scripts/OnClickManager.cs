@@ -16,7 +16,8 @@ public class OnClickManager : MonoBehaviour {
     void destroyMyself()
     {
         networkThing = GameObject.Find("Network Manager").GetComponent<ServerManager>();
-        networkThing.forceRemoveGame(this.transform.parent.gameObject);
+        networkThing.forceRemoveGame(cancelBTN.transform.parent.gameObject);
+        Debug.Log(cancelBTN.transform.parent.gameObject);
         Destroy(cancelBTN.transform.parent.gameObject);
     }
 }
