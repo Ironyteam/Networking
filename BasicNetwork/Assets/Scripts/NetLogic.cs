@@ -35,7 +35,9 @@ public class NetLogic : MonoBehaviour
 		myReliableChannelId = config.AddChannel (QosType.Reliable);
 		HostTopology topology = new HostTopology (config, maxConnections);
 		socketId = NetworkTransport.AddHost (topology, socketPort);
-		messageLog.text = messageLog.text + "\n" + "Socket open. Socket ID is : " + socketId;			
+		messageLog.text = messageLog.text + "\n" + "Socket open. Socket ID is : " + socketId;
+		
+		requestGameList("172.16.51.127~Name~4~5~passwod~map");
 	}
 
 	// Function to allow a testing button press
@@ -48,6 +50,7 @@ public class NetLogic : MonoBehaviour
 	public void connectToGame(string ipAddress)
 	{
 		byte error;
+		messageLog.text = messageLog.text + "\n" + "Trying to connect to: " + ipAddress;
 		connectionId = NetworkTransport.Connect (0, ipAddress, socketPort, 0, out error);
 		messageLog.text = messageLog.text + "\n" + "Connected to server. ConnectionID: " + connectionId + " IP: " + ipField.text;
 	}
@@ -60,7 +63,7 @@ public class NetLogic : MonoBehaviour
             string gameInfo;
             isHostingGame = true;
             gameInfo = Constants.addGame + Constants.commandDivider + Network.player.ipAddress + Constants.gameDivider + gameName + 
-				Constants.gameDivider + "6" + Constants.gameDivider + "6" + Constants.gameDivider + "password" + Constants.gameDivider + "Binary";
+			Constants.gameDivider + "6" + Constants.gameDivider + "6" + Constants.gameDivider + "password" + Constants.gameDivider + "Binary";
             messageLog.text = messageLog.text + "\nSending: " + gameInfo;
             sendSocketMessage(gameInfo);
         }
@@ -81,7 +84,7 @@ public class NetLogic : MonoBehaviour
 		formatter.Serialize (stream, message);
 
 		int bufferSize = 1024;
-
+		messageLog.text = messageLog.text + "\n" + message;
 		NetworkTransport.Send (socketId, connectionId, myReliableChannelId, buffer, bufferSize, out error);
 	}
 
@@ -186,7 +189,6 @@ public class NetLogic : MonoBehaviour
 				messageLog.text = messageLog.text + item;
 			}
 			gameList.Add(tempGame);
-			messageLog.text = messageLog.text + "\n" + "  Adding a Game\n";
 		}
 		refreshGameList();
 	}
@@ -213,12 +215,12 @@ public class NetLogic : MonoBehaviour
 			GameObject serverGame = Instantiate(gameInfoPanel) as GameObject;
 			serverGame.transform.SetParent(gameListCanvas.transform, false);
 			Text[] nameText = serverGame.GetComponentsInChildren<Text>();
-			messageLog.text = messageLog.text + "\n Printing what is passed " + game[1] + game[2] + game[3] + game[4] + game[5];
 			nameText[0].text =        game[1];
 			nameText[1].text = 		  game[2];
 			nameText[2].text = "\\" + game[3];
 			nameText[3].text =        game[4];
 			nameText[4].text =        game[5];
+			nameText[6].text =        game[0];
 		}
 	}
 

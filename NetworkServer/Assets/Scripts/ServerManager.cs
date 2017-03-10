@@ -182,7 +182,7 @@ public class ServerManager : MonoBehaviour
 	public void forceRemoveGame(GameObject myObject)
 	{
         messagesField.text = messagesField.text + "\nforceRemoveGame called";
-		  Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
+		Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
         Debug.Log(gameTextBoxes.Length);
         Debug.Log(gameTextBoxes[5].text);
         messagesField.text = messagesField.text + "\nForce removing game at ip: " + gameTextBoxes[5].text;
