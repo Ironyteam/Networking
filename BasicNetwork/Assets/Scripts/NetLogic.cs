@@ -12,17 +12,28 @@ public class NetLogic : MonoBehaviour
 	int socketId;
 	int socketPort = 5010;
 	int connectionId;
-	string gameName = "My Game";
-	bool isHostingGame;
-	const string myIP = "127.0.0.1";
+   int serverConnectionID = 1; // Should always be zero but may need to reconfigure
+   const string myIP = "127.0.0.1";
+   public List<Player> lobbyPlayers;
+
+   bool isHostingGame = false;
+   bool inGameLobby   = false;
+
 	List<string[]> gameList = new List<string[]>();
 	public GameObject gameInfoPanel;
 	public GameObject gameListCanvas;
+   public GameObject playerInfoPanel;
+   NetworkGame myGame;
 
-	public Text messageInputField;
 	public Text messageLog;
 	public Text ipField;
-	public Text portField;
+
+   // Game settings input fields
+   public Text gameName;
+   public Text maxPlayers;
+   public Text gamePassword;
+   public Text mapName;
+   public Text connectionIDTEXT;
 
 	// Use this for initialization
 	void Start () 
@@ -40,8 +51,8 @@ public class NetLogic : MonoBehaviour
 		requestGameList("172.16.51.127~Name~4~5~passwod~map");
 	}
 
-	// Function to allow a testing button press
-	public void connecToGameBTN()
+   // Function to allow a testing button press, as inpector doesn't allow button function calls that have parameters
+   public void connecToGameBTN()
 	{
 		connectToGame(ipField.text);
 	}
@@ -52,7 +63,7 @@ public class NetLogic : MonoBehaviour
 		byte error;
 		messageLog.text = messageLog.text + "\n" + "Trying to connect to: " + ipAddress;
 		connectionId = NetworkTransport.Connect (0, ipAddress, socketPort, 0, out error);
-		messageLog.text = messageLog.text + "\n" + "Connected to server. ConnectionID: " + connectionId + " IP: " + ipField.text;
+		messageLog.text = messageLog.text + "\n" + "ConnectionID: " + connectionId;
 	}
 
 	// Send game info to the server
@@ -62,10 +73,19 @@ public class NetLogic : MonoBehaviour
         {
             string gameInfo;
             isHostingGame = true;
-            gameInfo = Constants.addGame + Constants.commandDivider + Network.player.ipAddress + Constants.gameDivider + gameName + 
-			Constants.gameDivider + "6" + Constants.gameDivider + "6" + Constants.gameDivider + "password" + Constants.gameDivider + "Binary";
-            messageLog.text = messageLog.text + "\nSending: " + gameInfo;
-            sendSocketMessage(gameInfo);
+
+            // Initialize the network game for hosting
+            myGame = new NetworkGame()
+            {
+               gameName   = gameName.text,
+               maxPlayers = maxPlayers.text,
+               password   = gamePassword.text,
+               mapName    = mapName.text
+            };
+
+            gameInfo = Constants.addGame + Constants.commandDivider + Network.player.ipAddress + Constants.gameDivider + myGame.gameName +
+               Constants.gameDivider + "0" + Constants.gameDivider + myGame.maxPlayers + Constants.gameDivider + myGame.password + Constants.gameDivider + myGame.mapName;
+            sendSocketMessage(gameInfo, serverConnectionID);
         }
         else
         {
@@ -74,7 +94,7 @@ public class NetLogic : MonoBehaviour
     }
 	
 	// Send a socket message to connectionId
-	public void sendSocketMessage(string message) 
+	public void sendSocketMessage(string message, int connectionNum) 
 	{
 		byte error;
 		byte[] buffer = new byte[1024];
@@ -84,8 +104,8 @@ public class NetLogic : MonoBehaviour
 		formatter.Serialize (stream, message);
 
 		int bufferSize = 1024;
-		messageLog.text = messageLog.text + "\n" + message;
-		NetworkTransport.Send (socketId, connectionId, myReliableChannelId, buffer, bufferSize, out error);
+		messageLog.text = messageLog.text + "\nSending to ID " + connectionNum + " : " + message;
+		NetworkTransport.Send (socketId, connectionNum, myReliableChannelId, buffer, bufferSize, out error);
 	}
 
 	// Called every frame
@@ -111,9 +131,8 @@ public class NetLogic : MonoBehaviour
 			Stream stream = new MemoryStream (recBuffer);
 			BinaryFormatter formatter = new BinaryFormatter ();
 			string message = formatter.Deserialize (stream) as string;
-			messageLog.text = messageLog.text + "\n" + message;
-			processNetworkMessage(message);
-			Debug.Log("Message Recieved");
+			messageLog.text = messageLog.text + "\nIncoming: " + message;
+			processNetworkMessage(message, recConnectionId);
 			break;
 		case NetworkEventType.DisconnectEvent:
 			messageLog.text = messageLog.text + "\n" + "Remote client event disconnected";
@@ -121,36 +140,37 @@ public class NetLogic : MonoBehaviour
 		}
 	}
 
-	public void processNetworkMessage(string networkMessage)
+	public void processNetworkMessage(string networkMessage, int recConnectionID)
 	{
 		string[] gameInfo = networkMessage.Split (Convert.ToChar(Constants.commandDivider));
 
 		switch (gameInfo[0])
 		{
-			// Commented out cases shouldn't be needed on the clients
-			//case Constants.addGame:         // #, ipAddress, gameName, players, maxPlayers, password, mapName
-			//case Constants.addPlayer:       // #, ipAddress, password
-			case Constants.requestGameList: // #, game, game, game, game...
+			case Constants.addPlayer:         // #, ipAddress, password
+            addPlayer(gameInfo[1], recConnectionID);
+            messageLog.text = messageLog.text + "\nAdding Player";
+            break;
+			case Constants.requestGameList:   // #, game, game, game, game...
 				requestGameList(gameInfo[1]);
 				break;
-			case Constants.cancelGame:      // #
+			case Constants.cancelGame:        // #
 				removeGame(gameInfo[1]);
 				break;
-			//case Constants.gameStarted:     // #, ipAddress
-			//case Constants.gameEnded:       // #, ipAddress
-			case Constants.characterSelect: // #, character
+			case Constants.gameStarted:       // #, ipAddress
+			case Constants.gameEnded:         // #, ipAddress
+			case Constants.characterSelect:   // #, character
 				break;
-			case Constants.characterResult: // #, characterResult
+			case Constants.characterResult:   // #, characterResult
 				break;
-			case Constants.diceRoll:        // #, number1, number2
+			case Constants.diceRoll:          // #, number1, number2
 				break;
-			case Constants.endTurn:         // #, player
+			case Constants.endTurn:           // #, player
 				break;
-			case Constants.startTurn:       // #, player
+			case Constants.startTurn:         // #, player
 				break;
-			case Constants.sendChat:        // #, player
+			case Constants.sendChat:          // #, player
 				break;
-			case Constants.networkError:    // #, info
+			case Constants.networkError:      // #, info
 				networkError(gameInfo[1]);
 				break;
 		    default:
@@ -159,20 +179,54 @@ public class NetLogic : MonoBehaviour
 		}
 	}
 
-	void addGame(string[] gameInfo)
-	{
-		
-	}
+   // Send request to host to join game
+   public void requestGameJoin()
+   {
+      messageLog.text = messageLog.text + "\nRequesting to join game, connectionID:" + connectionId;
+      string message = Constants.addPlayer + Constants.commandDivider + Network.player.ipAddress;
+      sendSocketMessage(message, connectionId);
+   }
 
-	void addPlayer(string[] gameInfo)
+    // Player connecting to your lobby
+	public void addPlayer(string gameInfo, int connectionID)
 	{
-		
-	}
+      messageLog.text = messageLog.text + "\nInside add player";
+      // Tell connecting player he failed to to join lobby, it is full or we are not hosting
+      if (!isHostingGame || !myGame.addPlayer())
+      {
+         lobbyFull(connectionID);
+         return;
+      }
+
+      // Create player class
+      Player player = new Player()
+      {
+         connectionID = connectionID,
+         ipAddress = gameInfo,
+      };
+
+      lobbyPlayers.Add(player);
+
+      // Create UI GameObject to list player
+      // Destroy everything in the panel
+      foreach (Transform child in gameListCanvas.transform)
+      {
+         GameObject.Destroy(child.gameObject);
+      }
+      Instantiate(playerInfoPanel, gameListCanvas.transform, false);
+   }
 	
+    // Player connecting to full or canceled lobby
+    public void lobbyFull(int connectionID)
+    {
+      string message = Constants.lobbyFull + Constants.commandDivider + Network.player.ipAddress;
+      sendSocketMessage(message, connectionID);
+    }
+
 	// Ask server to send list of games
 	public void requestGameListServer()
 	{
-		sendSocketMessage(Constants.requestGameList + Constants.commandDivider + myIP);
+		sendSocketMessage(Constants.requestGameList + Constants.commandDivider + myIP, serverConnectionID);
 	}
 	
 	// Updates the local game list with list from server
@@ -225,9 +279,13 @@ public class NetLogic : MonoBehaviour
 	}
 
 	// Tell the server that game is canceled
-	void cancelGame()
+	public void cancelGame()
 	{
-		isHostingGame = false;
+      if (isHostingGame)
+      {
+         isHostingGame = false;
+         sendSocketMessage(Constants.cancelGame + Constants.commandDivider + Network.player.ipAddress, serverConnectionID);
+      }
 	}
 	
 	// Tell the server the game has started
@@ -280,5 +338,4 @@ public class NetLogic : MonoBehaviour
 	{
 
 	}
-
 }
