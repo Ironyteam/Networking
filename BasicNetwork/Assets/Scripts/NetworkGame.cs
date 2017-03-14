@@ -14,7 +14,7 @@ public class NetworkGame
 	// string will send with format ip, name, players, password
 	public string ipAddress;
    public string gameName;
-   public string numberOfPlayers;
+   public string numberOfPlayers = "0";
    public string maxPlayers;
    public string password;
 	public string mapName;

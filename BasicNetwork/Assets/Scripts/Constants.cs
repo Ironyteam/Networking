@@ -2,9 +2,12 @@ using UnityEngine;
 
 public static class Constants
 {
+   // Network message dividers
    public const string commandDivider  = ":";
    public const string gameDivider     = "~";
    public const string gameListDivider = ";";
+
+   // Server browser and network lobby commands
    public const string addGame         = "1";
    public const string addPlayer       = "2";
    public const string requestGameList = "3";
@@ -14,6 +17,8 @@ public static class Constants
    public const string characterSelect = "7";
    public const string characterResult = "8";
    public const string diceRoll        = "9";
+
+   // In game turn commands
    public const string buildSettlement = "10";
    public const string upgradeToCity   = "11";
    public const string buildRoad       = "12";
@@ -26,7 +31,6 @@ public static class Constants
    public const string networkError    = "19";
    public const string lobbyFull       = "20";
    public const string serverKillCode  = "1234";
-
 
 
     // Imported constants from Luke

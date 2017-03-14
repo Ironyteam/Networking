@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -6,19 +6,9 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-public class NetLogic : MonoBehaviour 
+public class GameLogic : MonoBehaviour 
 {
-	int myReliableChannelId;
-	int socketId;
-	int socketPort = 5010;
-	int connectionId;
-   int serverConnectionID = 1; // Should always be zero but may need to reconfigure
-   const string myIP = "127.0.0.1";
-   public List<Player> lobbyPlayers = new List<Player>();
-	Player myPlayer;
-
-   bool isHostingGame = false;
-   bool inGameLobby   = false;
+   
 
    List<string[]> gameList = new List<string[]>();
    public GameObject gameInfoPanel;
@@ -55,7 +45,6 @@ public class NetLogic : MonoBehaviour
 		myPlayer = new Player("DefaultName");
 	}
 
-#region Temp Functions
 	// Function to name player for BTN
 	public void namePlayer()
 	{
@@ -66,8 +55,7 @@ public class NetLogic : MonoBehaviour
 	{
 		connectToGame(ipField.text);
 	}
-#endregion
-
+	
 	// Client connecting to server
 	public void connectToGame(string ipAddress)
 	{
@@ -227,13 +215,15 @@ public class NetLogic : MonoBehaviour
 
       lobbyPlayers.Add(newplayer);
 
-      // Create UI GameObject to list player
-		GameObject newPlayer = Instantiate(playerInfoPanel, gameListCanvas.transform, false);
-      Text[] playerTexts = newPlayer.GetComponentsInChildren<Text>();
-		playerTexts[0].text = myGame.numberOfPlayers;
-		playerTexts[1].text = gameInfo;
+        // Create UI GameObject to list player
+        createPlayerUI();
    }
 	
+    void createPlayerUI()
+    {
+        GameObject newPlayer = Instantiate(playerInfoPanel, gameListCanvas.transform, false);
+        Text[] playerTexts = newPlayer.GetComponentsInChildren<Text>();
+    }
     // Player connecting to full or canceled lobby
     public void lobbyFull(int connectionID)
     {
