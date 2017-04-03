@@ -10,9 +10,11 @@ public class NetworkGame
    public string maxPlayers;
  	public string password;
 	public string mapName;
-	public int connectionID;
+	public int    hostID;
+   public GameObject gamePNL;
 
-	public string listGame()
+
+   public string listGame()
 	{
 		return (ipAddress + "," + gameName + "," + numberOfPlayers + "," + maxPlayers + "," + password + "," + mapName);
 	}

@@ -41,7 +41,8 @@ public class ServerManager : MonoBehaviour
 		HostTopology topology = new HostTopology (config, maxConnections);
 		socketId = NetworkTransport.AddHost (topology, socketPort);
 		messagesField.text = messagesField.text + "\n" + "Socket open. Socket ID is : " + socketId;
-        addGame(new string [] { "123.0.0.1", "My Fake Game", "9", "10", "Nothing", "No Map"}, 1);
+      messagesField.text = messagesField.text + "\nIP: " + Network.player.ipAddress;
+      addGame(new string [] { "123.0.0.1", "My Fake Game", "9", "10", "Nothing", "No Map"}, -10);
     }
 
 	// Client connecting to server
@@ -49,7 +50,7 @@ public class ServerManager : MonoBehaviour
 	{
 		byte error;
 		connectionId = NetworkTransport.Connect (0, connectionIP, socketPort, 0, out error);
-        messagesField.text = messagesField.text + "\n" + "Connected to Client. ConnectionID: " + connectionId;
+      messagesField.text = messagesField.text + "\n" + "Connected to Client. ConnectionID: " + connectionId;
 	}
 
 	public void sendSocketMessage(string sendMessage, int connectionNumber) 
@@ -90,10 +91,16 @@ public class ServerManager : MonoBehaviour
 			Stream stream = new MemoryStream (recBuffer);
 			BinaryFormatter formatter = new BinaryFormatter ();
 			string message = formatter.Deserialize (stream) as string;
-         	messagesField.text = messagesField.text + "\n" + "Incoming data event recieved";
+         messagesField.text = messagesField.text + "\n" + "Incoming data event recieved";
 			proccessNetworkMessage(message, recConnectionId);
 			break;
 		case NetworkEventType.DisconnectEvent:
+         NetworkGame game = gameList.FirstOrDefault(o => o.hostID == recConnectionId);
+         if (game != null)
+         {
+            gameList.Remove(game);
+            Destroy(game.gamePNL);           
+         }
          messagesField.text = messagesField.text + "\n" + "Remote client event disconnected";
 			break;
 		}
@@ -143,15 +150,18 @@ public class ServerManager : MonoBehaviour
 	// Add a game to the server list
 	public void addGame(string[] gameInfo, int hostNumber)
 	{
+      // Create a game and set values
 		game = new NetworkGame();
-        game.ipAddress       = gameInfo[0];
+      game.ipAddress       = gameInfo[0];
 		game.gameName        = gameInfo[1];
 		game.numberOfPlayers = gameInfo[2];
 		game.maxPlayers      = gameInfo[3];
 		game.password        = gameInfo[4];
 		game.mapName         = gameInfo[5];
-		game.connectionID    = hostNumber;
+		game.hostID    = hostNumber;
 		gameList.Add(game);
+
+      // Set the prefab values
 		GameObject gamePNL = Instantiate (gamePanel) as GameObject;
 		gamePNL.transform.SetParent (gameListPanel.transform, false);
 		Text[] nameText = gamePNL.GetComponentsInChildren<Text>();
@@ -160,7 +170,9 @@ public class ServerManager : MonoBehaviour
 		nameText[2].text = "\\" + gameInfo[3];
 		nameText[3].text =        gameInfo[4];
 		nameText[4].text =        gameInfo[5];
-        nameText[5].text =        gameInfo[0];
+      nameText[5].text =        gameInfo[0];
+
+      game.gamePNL = gamePNL;
 	}
 
 	// Increase the player count of a game
@@ -182,7 +194,7 @@ public class ServerManager : MonoBehaviour
 	public void forceRemoveGame(GameObject myObject)
 	{
         messagesField.text = messagesField.text + "\nforceRemoveGame called";
-		Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
+		  Text[] gameTextBoxes = myObject.GetComponentsInChildren<Text>();
         Debug.Log(gameTextBoxes.Length);
         Debug.Log(gameTextBoxes[5].text);
         messagesField.text = messagesField.text + "\nForce removing game at ip: " + gameTextBoxes[5].text;
@@ -200,7 +212,7 @@ public class ServerManager : MonoBehaviour
         if (forceRemove)
         {
             string removeGameMessage = REMOVE_GAME + commandDivider + COMMAND_QUIT;
-            sendSocketMessage(removeGameMessage, game.connectionID);
+            sendSocketMessage(removeGameMessage, game.hostID);
         }
 	}
 
