@@ -32,7 +32,7 @@ public class ServerManager : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-		int maxConnections = 5;
+		int maxConnections = 100;
 		
 		// Opens a port on local computer that will be used for sending and recieving, done on client and server
 		NetworkTransport.Init ();
@@ -98,6 +98,7 @@ public class ServerManager : MonoBehaviour
          NetworkGame game = gameList.FirstOrDefault(o => o.hostID == recConnectionId);
          if (game != null)
          {
+            messagesField.text = messagesField.text + "\n" + "Game Found Removing";
             gameList.Remove(game);
             Destroy(game.gamePNL);           
          }
@@ -207,13 +208,15 @@ public class ServerManager : MonoBehaviour
 		var game = gameList.FirstOrDefault(o => o.ipAddress == targetIP);
 		if (game != null)
 		{
-			gameList.Remove (game);
+         messagesField.text = messagesField.text + "\nRemoving Game from server";
+         gameList.Remove (game);
+         Destroy(game.gamePNL);
 		}
-        if (forceRemove)
-        {
-            string removeGameMessage = REMOVE_GAME + commandDivider + COMMAND_QUIT;
-            sendSocketMessage(removeGameMessage, game.hostID);
-        }
+      if (forceRemove)
+      {
+         string removeGameMessage = REMOVE_GAME + commandDivider + COMMAND_QUIT;
+         sendSocketMessage(removeGameMessage, game.hostID);
+      }
 	}
 
 	// Send the list of games to the ip address
